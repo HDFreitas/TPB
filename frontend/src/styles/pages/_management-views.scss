@@ -1,0 +1,134 @@
+// Estilos globais para views de gestão (tenants, usuários, perfis, etc.)
+
+.management-container {
+  padding: 20px;
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.management-card {
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  width: 100% !important;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+  }
+}
+
+.management-title {
+  background: white;
+  color: #333 !important;
+  padding: 24px;
+  border-radius: 16px 16px 0 0 !important;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+}
+
+.management-new-btn {
+  margin-left: auto;
+  padding: 8px 16px !important;
+  font-size: 0.875rem !important;
+  min-width: auto !important;
+}
+
+.management-data-table {
+  border-radius: 0 0 16px 16px !important;
+  overflow: hidden;
+
+  :deep(.v-data-table__wrapper) {
+    border-radius: 0 0 16px 16px;
+  }
+
+  :deep(th) {
+    background: white !important;
+    color: #495057 !important;
+    font-weight: 600 !important;
+    padding: 16px !important;
+    border-bottom: 2px solid #dee2e6 !important;
+  }
+
+  :deep(td) {
+    padding: 16px !important;
+    border-bottom: 1px solid #f8f9fa !important;
+  }
+
+  :deep(tr:hover) {
+    background: rgba(0, 0, 0, 0.02) !important;
+  }
+}
+
+.management-action-btn {
+  margin: 0 4px !important;
+  min-width: 80px !important;
+  height: 32px !important;
+  padding: 6px 12px !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  border-radius: 6px !important;
+}
+
+.management-dialog-card {
+  border-radius: 20px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2) !important;
+}
+
+.management-dialog-title {
+  background: white;
+  color: #333 !important;
+  padding: 20px 24px !important;
+  border-radius: 20px 20px 0 0 !important;
+  font-size: 1.3rem;
+  font-weight: 600;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.management-dialog-content {
+  padding: 32px 24px !important;
+  background: #fafafa;
+}
+
+.management-form-field {
+  margin-bottom: 20px !important;
+
+  :deep(.v-field) {
+    border-radius: 12px !important;
+    background: white !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  :deep(.v-field--focused) {
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2) !important;
+  }
+}
+
+.management-dialog-actions {
+  padding: 16px 24px 24px !important;
+  background: #fafafa;
+  border-radius: 0 0 20px 20px;
+}
+
+.management-status-chip {
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  padding: 8px 16px !important;
+}
+
+.status-ativo {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%) !important;
+  color: #2e7d32 !important;
+}
+
+.status-inativo {
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%) !important;
+  color: #f57c00 !important;
+}

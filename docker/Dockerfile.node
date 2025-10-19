@@ -1,0 +1,65 @@
+FROM node:23-alpine
+
+# Instalar dependências do sistema necessárias
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    git \
+    python3 \
+    make \
+    g++ \
+    wget \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+WORKDIR /usr/src/app
+
+ARG VITE_HOST
+ARG VITE_PORT
+ARG VITE_API_URL
+ENV VITE_HOST=$VITE_HOST
+ENV VITE_PORT=$VITE_PORT
+ENV VITE_API_URL=$VITE_API_URL
+ENV PATH=/usr/src/app/node_modules/.bin:$PATH
+ENV NODE_ENV=development
+
+# Copiar apenas package.json primeiro
+COPY ./frontend/package.json ./
+COPY ./frontend/package-lock.json* ./
+
+# Configurar npm para melhor performance
+RUN npm config set fund false && \
+    npm config set audit-level moderate
+
+# Limpar cache e instalar dependências
+RUN npm cache clean --force && \
+    rm -rf node_modules && \
+    npm ci --only=production=false --prefer-offline
+
+# Reconstruir binários nativos incluindo esbuild
+RUN npm rebuild esbuild && \
+    npm rebuild @esbuild/linux-x64 2>/dev/null || true
+
+# Copiar o resto dos arquivos
+COPY ./frontend/ .
+
+# Garantir que esbuild está funcionando corretamente
+RUN npx esbuild --version || npm rebuild esbuild
+
+# Verificar se o Vite está funcionando
+RUN npx vite --version
+
+# Criar usuário não-root para segurança
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+# Alterar propriedade dos arquivos
+RUN chown -R nextjs:nodejs /usr/src/app
+USER nextjs
+
+EXPOSE 5173
+
+# Healthcheck para verificar se o servidor está respondendo
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:5173/ || exit 1
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

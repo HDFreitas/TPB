@@ -1,0 +1,16 @@
+.env
+node_modules/
+dist/
+.DS_Store
+.vscode/
+.env
+.env.local
+.env.*.local    
+package.json
+yarn.lock
+pnpm-lock.yaml
+.idea/
+*.iml
+out/
+build/  
+frontend/.vscode/    

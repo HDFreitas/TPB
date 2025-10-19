@@ -1,0 +1,122 @@
+name: plataforma  
+
+services:
+  backend: 
+    container_name: plataforma-backend 
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.laravel
+      args:
+        - USER_ID=${USER_ID:-1000}
+        - GROUP_ID=${GROUP_ID:-1000}
+        - APP_ENV=${APP_ENV:-local} 
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+      - backend-storage:/var/www/html/storage
+      - ./backend/bootstrap/cache:/var/www/html/bootstrap/cache
+    ports:
+      - "8000:80"
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - DB_HOST=postgres  
+      - DB_CONNECTION=pgsql
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - LARAVEL_SAIL=1
+      - VITE_SSR=1
+    depends_on:
+      postgres:  
+        condition: service_healthy
+    networks:
+      - plataforma-network
+    restart: unless-stopped
+
+  frontend:
+    container_name: plataforma-frontend 
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.node
+      args:
+        - VITE_HOST=${VITE_HOST}
+        - VITE_PORT=${VITE_PORT:-5173}
+        - VITE_API_URL=${VITE_API_URL}
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+      - frontend-npm-cache:/usr/src/app/.npm
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - VITE_HOST=0.0.0.0
+      - VITE_PORT=5173
+      - VITE_API_URL=${VITE_API_URL}
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    env_file:
+      - .env
+    networks:
+      - plataforma-network
+    restart: unless-stopped
+
+  postgres:
+    container_name: plataforma-postgres  
+    image: postgres:17.0
+    restart: always
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_DATABASE}
+    volumes:
+      - plataforma-pg-data:/var/lib/postgresql/data
+    networks:
+      - plataforma-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  queue:
+    container_name: plataforma-queue
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.laravel
+      args:
+        - USER_ID=${USER_ID:-1000}
+        - GROUP_ID=${GROUP_ID:-1000}
+        - APP_ENV=${APP_ENV:-local}
+    command: php artisan queue:work --queue=erp-high,erp-default --tries=3 --timeout=600 --sleep=3 --verbose --max-jobs=1000
+    volumes:
+      - ./backend:/var/www/html
+      - /var/www/html/vendor
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - plataforma-network
+    environment:
+      - APP_ENV=${APP_ENV:-local}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - QUEUE_CONNECTION=database
+      - APP_DEBUG=true
+    restart: unless-stopped
+
+volumes:
+  plataforma-pg-data:
+  backend-storage:
+  frontend-npm-cache:
+
+networks:
+  plataforma-network:
+    driver: bridge

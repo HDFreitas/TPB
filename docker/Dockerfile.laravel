@@ -1,0 +1,103 @@
+FROM php:8.4-fpm-alpine
+
+# Definir argumentos
+ARG APP_ENV
+ARG USER_ID
+ARG GROUP_ID
+ENV APP_ENV=$APP_ENV
+ENV USER_ID=$USER_ID
+ENV GROUP_ID=$GROUP_ID
+
+# Criar diretório de trabalho
+WORKDIR /var/www/html
+
+# Instalar dependências necessárias e extensões PHP
+RUN apk update && apk upgrade && \
+    apk add --no-cache \
+    linux-headers \
+    autoconf \
+    build-base \
+    unixodbc-dev \
+    libzip-dev \
+    libpq-dev \
+    bzip2-dev \
+    curl-dev \
+    libxml2-dev \
+    oniguruma-dev \
+    bash \
+    git \
+    curl \
+    zlib \
+    zip \
+    nginx \
+    openssh \
+    php-pear \
+    unixodbc \
+    supervisor \
+    shadow \
+    && docker-php-ext-install \
+    pdo \
+    pdo_pgsql \
+    zip \
+    bcmath \
+    sockets \
+    && rm -rf /var/cache/apk/*
+
+## Adicionar ferramentas ao PATH
+ENV PATH=$PATH:/opt/mssql-tools/bin
+
+# ------------------------------------------
+# USUÁRIO E PERMISSÕES
+# ------------------------------------------
+# Modificar o ID do usuário www-data para corresponder ao usuário do host
+RUN usermod -u ${USER_ID} www-data && \
+    groupmod -g ${GROUP_ID} www-data
+
+# ------------------------------------------
+# APLICAÇÃO
+# ------------------------------------------
+# Copiar o Composer
+COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
+
+# Em produção, copiar os arquivos (para desenvolvimento, usamos volumes)
+COPY --chown=www-data:www-data ./backend .
+
+# Criar arquivo .env se não existir
+RUN if [ ! -f .env ]; then \
+        if [ -f .env.example ]; then \
+            cp .env.example .env; \
+        else \
+            touch .env; \
+        fi; \
+    fi
+
+# Configurar diretórios com permissões corretas
+RUN mkdir -p storage/framework/{sessions,views,cache} \
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache \
+    && mkdir -p database \
+    && touch database/database.sqlite \
+    && chown -R www-data:www-data storage bootstrap/cache database \
+    && chmod -R 775 storage bootstrap/cache database
+
+# Instalar dependências do Composer
+RUN composer install \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader
+
+# Copiar arquivo de configuração do PHP
+COPY ./docker/php/php.ini /usr/local/etc/php/php.ini
+
+# Copiar configuração do Nginx e Supervisor
+COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./docker/nginx/nginx.conf /etc/nginx/conf.d/nginx.conf
+COPY ./docker/supervisor/supervisord.conf /etc/supervisord.conf
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Expor as portas para Nginx
+EXPOSE 80
+
+# Comando padrão para iniciar o Supervisor
+CMD ["/entrypoint.sh"]

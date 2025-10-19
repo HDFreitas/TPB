@@ -1,0 +1,37 @@
+# Backend
+backend/vendor
+backend/node_modules
+backend/public/storage
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/bootstrap/cache/*
+backend/.env
+backend/.env.*
+
+# Frontend
+frontend/node_modules
+frontend/dist
+frontend/.vite
+frontend/.env
+frontend/.env.*
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+.git
+.gitignore
+.vscode
+.idea
+*.swp
+*.swo
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Documentação
+*.md
+README.md
+
