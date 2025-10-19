@@ -1,8 +1,8 @@
-name: plataforma  
+name: tpb  
 
 services:
   backend: 
-    container_name: plataforma-backend 
+    container_name: tpb-backend 
     build:
       context: .
       dockerfile: ./docker/Dockerfile.laravel
@@ -31,11 +31,11 @@ services:
       postgres:  
         condition: service_healthy
     networks:
-      - plataforma-network
+      - tpb-network
     restart: unless-stopped
 
   frontend:
-    container_name: plataforma-frontend 
+    container_name: tpb-frontend 
     build:
       context: .
       dockerfile: ./docker/Dockerfile.node
@@ -59,11 +59,11 @@ services:
     env_file:
       - .env
     networks:
-      - plataforma-network
+      - tpb-network
     restart: unless-stopped
 
   postgres:
-    container_name: plataforma-postgres  
+    container_name: tpb-postgres  
     image: postgres:17.0
     restart: always
     ports:
@@ -73,9 +73,9 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_DATABASE}
     volumes:
-      - plataforma-pg-data:/var/lib/postgresql/data
+      - tpb-pg-data:/var/lib/postgresql/data
     networks:
-      - plataforma-network
+      - tpb-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
       interval: 10s
@@ -83,7 +83,7 @@ services:
       retries: 5
 
   queue:
-    container_name: plataforma-queue
+    container_name: tpb-queue
     build:
       context: .
       dockerfile: ./docker/Dockerfile.laravel
@@ -99,7 +99,7 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - plataforma-network
+      - tpb-network
     environment:
       - APP_ENV=${APP_ENV:-local}
       - DB_CONNECTION=pgsql
@@ -113,10 +113,10 @@ services:
     restart: unless-stopped
 
 volumes:
-  plataforma-pg-data:
+  tpb-pg-data:
   backend-storage:
   frontend-npm-cache:
 
 networks:
-  plataforma-network:
+  tpb-network:
     driver: bridge
